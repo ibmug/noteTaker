@@ -12,6 +12,8 @@ var PORT = 3000;
 // Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+//Serving static files via public folder:
+app.use(express.static("public"));
 
 // Notes DB retrieval
 // =============================================================
@@ -38,25 +40,34 @@ app.get("/notes", function(req, res) {
 app.get("/api/notes", function(req, res) {
  
   notes = JSON.parse(getDBJSON());
-  console.log(notes);
+  //console.log(notes);
   return res.json(notes);
 //return res.json(characters);
 });
 
 // Displays a single character, or returns false
-app.get("/api/characters/:character", function(req, res) {
-  var chosen = req.params.character;
+app.get("/api/notes/:note", function(req, res) {
+  var chosen = req.params.note;
 
   console.log(chosen);
 
-  for (var i = 0; i < characters.length; i++) {
-    if (chosen === characters[i].routeName) {
+  for (var i = 0; i < notes.length; i++) {
+    if (chosen === notes[i].title) {
       return res.json(characters[i]);
     }
   }
 
   return res.json(false);
 });
+
+
+app.delete("/api/notes/:id", function(req, res) {
+  var chosen = req.params.id;
+  console.log(req.params);
+
+});
+
+
 
 // Create New Characters - takes in JSON input
 app.post("/api/notes", function(req, res) {
@@ -67,10 +78,11 @@ app.post("/api/notes", function(req, res) {
   //Push it to our array
   //Push our array to the json file.
 
-
+  notes = JSON.parse(getDBJSON());
   var note = req.body;
-
-  console.log(note);
+  notes.push(note);
+  //write to file
+  writeToDBJSON(notes);
   res.json(note);
 });
 
@@ -91,4 +103,14 @@ function getDBJSON(){
 
   return rawData;
 
+}
+
+function writeToDBJSON(objectToWrite){
+  console.log(objectToWrite);
+  let stringify = JSON.stringify(objectToWrite);
+  var jsonPath = path.join(__dirname, "/db/db.json");
+  fs.writeFileSync(jsonPath, stringify, (err)=>{
+    if(err) throw err;
+  });
+  
 }
