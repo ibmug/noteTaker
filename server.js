@@ -39,10 +39,11 @@ app.get("/notes", function(req, res) {
 //Gets the db.json file
 app.get("/api/notes", function(req, res) {
  
+  //Just a test to see whats in our db.
   notes = JSON.parse(getDBJSON());
-  //console.log(notes);
+  
   return res.json(notes);
-//return res.json(characters);
+
 });
 
 // Displays a single character, or returns false
@@ -51,11 +52,12 @@ app.get("/api/notes/:note", function(req, res) {
 
   console.log(chosen);
 
-  for (var i = 0; i < notes.length; i++) {
-    if (chosen === notes[i].title) {
-      return res.json(characters[i]);
-    }
-  }
+  // for (var i = 0; i < notes.length; i++) {
+  //   if (chosen === notes[i].title) {
+  //     return res.json(characters[i]);
+  //   }
+  // }
+  
 
   return res.json(false);
 });
@@ -63,7 +65,14 @@ app.get("/api/notes/:note", function(req, res) {
 
 app.delete("/api/notes/:id", function(req, res) {
   var chosen = req.params.id;
-  console.log(req.params);
+  
+  notes = JSON.parse(getDBJSON());
+  
+  let newNotes = notes.filter(function(element){
+    return element.id != chosen;
+  });
+
+  writeToDBJSON(newNotes);
 
 });
 
@@ -82,7 +91,10 @@ app.post("/api/notes", function(req, res) {
   var note = req.body;
   notes.push(note);
   //write to file
-  writeToDBJSON(notes);
+  let stringify = resetSequenceID(notes);
+  console.log(stringify);
+  resetSequenceID(stringify);
+  writeToDBJSON(stringify);
   res.json(note);
 });
 
@@ -107,10 +119,19 @@ function getDBJSON(){
 
 function writeToDBJSON(objectToWrite){
   console.log(objectToWrite);
-  let stringify = JSON.stringify(objectToWrite);
+
+ let  stringify = JSON.stringify(objectToWrite);
   var jsonPath = path.join(__dirname, "/db/db.json");
   fs.writeFileSync(jsonPath, stringify, (err)=>{
     if(err) throw err;
   });
   
+}
+
+function resetSequenceID(object){
+  let quickObj = object;
+  for(var x=0; x<object.length;x++){
+    quickObj[x].id = x;
+  }
+  return quickObj;
 }
